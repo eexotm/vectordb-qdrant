@@ -1,0 +1,11 @@
+//! ============================================================================
+//! The Rust Programming Language — Chapter 13: Functional Language Features: Iterators and Closures
+//! https://doc.rust-lang.org/book/ch13-00-functional-features.html
+//!
+//!   13.1  Closures
+//!   13.2  Processing a Series of Items with Iterators
+//!   13.3  Improving Our I/O Project
+//!   13.4  Performance in Loops vs. Iterators
+//! ============================================================================
+
+fn main() {}

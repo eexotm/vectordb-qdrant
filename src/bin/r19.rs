@@ -1,0 +1,3 @@
+//! Scratch / spare.
+
+fn main() {}
