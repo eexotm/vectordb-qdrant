@@ -42,10 +42,7 @@ fn main() {
 
     // Recoverable errors with RESULT
 
-    enum Result<T,E> {
-        Ok(T),
-        Err(E),
-    }
+
     // T and E are generic type parameters. T represent the OK variant E represents teh Error variant
 
     use std::fs::File;
@@ -127,7 +124,24 @@ fn main() {
         match username_final.read_to_string(&mut username) {
             Ok(_) => Ok(username),
             Err(e) => Err(e),
+
         }
     }
+
+    // THE ? OPERATOR
+    fn read_username_from_file_operator() -> Result<String, io::Error> {
+        let mut username_file = File::open("hello.txt")?;
+        Ok()
+        // illogical function focus on ? usage
+    }
+    // when the ? operator gets called from function, the error type received form the aciton
+    // is converted into the error type defined in the funciton.
+    // useful when a funciton needs to cover all erorrs wiht a single returning type.
+    // in simple terms carries the error upwards to get handled.
+
+
+
+    //panic when u need to <Result> when needed to.
+
 
 }
