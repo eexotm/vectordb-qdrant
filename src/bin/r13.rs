@@ -135,8 +135,60 @@ in Rust when fn main() ends the entire program halts.
 
     /*
     using MOVE closures with Threads
-    We'
+    Rust rejects borrowed data across threads, and we can use move to fix it.
 
+    Closures default to borroiwng, if they only need to read them
+     */
+
+    let v = vec![1,2,3];
+    let handle = thread::spawn(|| {
+        println!("Here's a vector: {v:?}") // closure tries to borrow &v
+    });
+    /*
+    because prinln! only reads v, closure borrows v but the compiler throws
+    an error, "closures may outlvie the current funciton but it borrows v"
+    meaning v might not live while lcosure lives mor ethan v causing a null
+    memory pointer.
+    Compiler also doenst knwo how long a thread will run, it could run after main() finsihes
+    which is also garabge memory.
+
+     */
+    let v = vec![1, 2, 3];
+
+    let handle = thread::spawn(|| {
+        println!("Here's a vector: {v:?}"); // Borrowing v
+    });
+
+    drop(v); // Main thread instantly destroys v from memory!
+
+    handle.join().unwrap();
+
+    /* this code is an example where the OS pauses the thread before it runs
+    and drops v, conitneus the thread trying to read garabge memory
+    now we can fix this with MOVE
+
+    Fix: tell rust tog ive the entrie variable to the new thread instead of
+    borrowing it
+     */
+
+    let v = vec![1,2,3];
+    let handle = thread::spawn(move || {
+        println!("here's a vector {v:?}")
+    });
+    handle.join().unwrap();
+
+    /* pushing move infront of the || takes full ownership of v
+    v is physically out of the main threads scope and into the spawned threads
+    environemtn
+    v will stay alive as long the spawned thread exists, and will be cleaned up
+    autoamtically after the thread finsihed.
+
+    main() has no access to v, cant drop, or change.
+    if both threads need the data we need to .clone() so each thread
+    has its own independted copy.
+    or use thread safe shared ownerhship types like
+    Arc<T> and Mutex<T>
+    
      */
 
 
