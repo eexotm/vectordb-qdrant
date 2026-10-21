@@ -188,11 +188,92 @@ in Rust when fn main() ends the entire program halts.
     has its own independted copy.
     or use thread safe shared ownerhship types like
     Arc<T> and Mutex<T>
-    
+
      */
 
 
 
+    /* Transfering data between THREADS
+    instead of ahving threads try to fight over the same memory, message passing
+    allows threads to communiat eby sending pieces of data to each other.
+    Go language principle - do not communicate by sharing memory; instead,
+    share memory by communicating.
+
+    A channel is like a one-way river:
+    Transmitter(tx) - upstream, where we drop data into the river.
+    Reciever(rx) - downstream, where we wait to catch the data.
+    If either rx or tx is dropped, channel is clsoed.
+
+    MPSC - std::sync::mpsc what does it mean?
+    Mpsc stands for Multiple Producer, Single Consumer
+    Multiple prodcuers - we can have many threads holding transmitters,
+    sending data into the same channel
+    Single Consumer - there can only ever be ONE reciving and consuming
+    these messages.
+     */
+    use std::sync::mpsc;
+    let (tx,rx) = mpsc::channel();
+    thread::spawn(move || {
+        let val = String::from("HI");
+        tx.send(val).unwrap();
+    });
+
+    /* mpsc::channel constructs the channel and returns a tuple (transmitter, reciever)
+       move moves tx out of the main thread into spanwed thread whic now owns tx.
+       tx.send(val) puts the messsag einto the channel.
+       send() takes full ownership of val
+       send() also retursn Result<(), SendError<T>> if the receieving end
+       rx has already been dropped/destroyed sending fails, because nobody
+       to receive it.
+       we call .unwrap() if an error occurs to handle it.
+       tx automatically gets the .send() because it its attained a transmittion
+     */
+
+    let received =rx.recv().unwrap();
+    println!("received: {received}");
+    /* ABove is printing the received message, there is two ways to grab data
+    rx.recv() - Pauses the current thread completely until a message arrives,
+    we should use this when the thread has nothing else to do except wait for data.
+    rx.try_recv() - checks isntantly, returns OK(message) if one is waiting err if
+     When the trhead has other work to do like running a loop or UI, and jus wants to check
+     for data periodically.
+     this one doesn't block. it just checks.
+     */
+
+    let val1 = String::from("Hi");
+    tx.send(val).unwrap();
+    println!("val is {val}");
+
+    /* ths woudl give a compiler value because in rust sending an object
+    down a queue/data stream passes its ownership unlike other languages.
+    In other languages THREAD A could modify while THREAD B holds pointer and rememrbs it differently
+    rsut solves this by taking ownerhisp of the arugment.
+     */
+
+    thread::spawn(move || {
+        let vals = vec![String::from("hi"),
+                        String::from("hi2"),
+                        String::from("hi3"),
+                        String::from("hi4")];
+        for val in vals {
+            tx.send(val).unwrap();
+            thread::sleep(Duration::from_sec(2));
+        }
+    });
+
+    for received in rx {
+        println!("{received}")
+    }
+
+    /*
+    above is sending mutliple values with a simple loop througha vec/
+    vec is empty at the end.
+
+    and instead of calling rx.recv().unwrap() everytime we can treat the rx
+    as an iterator.
+    on each iteraiton of the loop it blocks the thread anwa its for msg.
+    if no msg is present loop blcoks until one arrives .
+     */
 
 
 
